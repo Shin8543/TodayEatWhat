@@ -19,31 +19,32 @@ public class FoodOptionController {
     
     @GetMapping("/options")
     public ResponseEntity<List<String>> getAllOptions() {
-        try {
-            List<String> options = foodOptionService.getAllOptions();
-            return ResponseEntity.ok(options);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<String> options = foodOptionService.getAllOptions();
+        return ResponseEntity.ok(options);
     }
     
     @PostMapping("/options")
     public ResponseEntity<FoodOption> addOption(@RequestBody FoodOption foodOption) {
-        try {
-            FoodOption savedOption = foodOptionService.addOption(foodOption.getName());
-            return ResponseEntity.status(HttpStatus.CREATED).body(savedOption);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        if (foodOption.getName() == null || foodOption.getName().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
         }
+        
+        FoodOption savedOption = foodOptionService.addOption(foodOption.getName().trim());
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedOption);
     }
     
     @DeleteMapping("/options/{name}")
     public ResponseEntity<String> deleteOption(@PathVariable String name) {
-        try {
-            foodOptionService.deleteOption(name);
-            return ResponseEntity.ok("Option deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        foodOptionService.deleteOption(name);
+        return ResponseEntity.ok("Option deleted successfully");
+    }
+    
+    @GetMapping("/random")
+    public ResponseEntity<String> getRandomOption() {
+        String randomOption = foodOptionService.getRandomOption();
+        if (randomOption == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(randomOption);
     }
 } 

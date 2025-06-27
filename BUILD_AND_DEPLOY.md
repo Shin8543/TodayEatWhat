@@ -4,7 +4,7 @@
 
 ### 1. 构建所有镜像
 ```bash
-# 构建前端、后端和MongoDB镜像
+# 构建前端和后端镜像
 docker-compose build
 
 # 或者分别构建
@@ -15,12 +15,11 @@ docker-compose build backend
 ### 2. 保存镜像到文件
 ```bash
 # 保存所有镜像
-docker save todayeatwhat_frontend:latest todayeatwhat_backend:latest mongo:latest -o todayeatwhat_images.tar
+docker save todayeatwhat/frontend:latest todayeatwhat/backend:latest -o todayeatwhat_images.tar
 
 # 或者分别保存
-docker save todayeatwhat_frontend:latest -o frontend.tar
-docker save todayeatwhat_backend:latest -o backend.tar
-docker save mongo:latest -o mongodb.tar
+docker save todayeatwhat/frontend:latest -o frontend.tar
+docker save todayeatwhat/backend:latest -o backend.tar
 ```
 
 ### 3. 压缩镜像文件（可选）
@@ -57,38 +56,43 @@ version: '3.8'
 
 services:
   frontend:
-    image: todayeatwhat_frontend:latest
+    image: todayeatwhat/frontend:latest
     ports:
       - "0.0.0.0:3000:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     environment:
       - REACT_APP_API_URL=http://SERVER_IP:4000
 
   backend:
-    image: todayeatwhat_backend:latest
+    image: todayeatwhat/backend:latest
     ports:
       - "0.0.0.0:4000:4000"
-    depends_on:
-      - mongodb
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/todayeatwhat
       - PORT=4000
-
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "0.0.0.0:27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-
-volumes:
-  mongodb_data:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/options"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 ```
 
 **注意**: 将 `SERVER_IP` 替换为你的服务器实际IP地址。
 
 ### 4. 启动服务
+
+#### 方法一：使用启动脚本（推荐）
+```bash
+# 给启动脚本执行权限
+chmod +x start.sh
+
+# 运行启动脚本
+./start.sh
+```
+
+#### 方法二：手动启动
 ```bash
 # 启动所有服务
 docker-compose up -d
@@ -117,6 +121,10 @@ docker-compose ps
 # 查看日志
 docker-compose logs -f
 
+# 查看特定服务的日志
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
 # 停止服务
 docker-compose down
 
@@ -127,9 +135,47 @@ docker-compose restart
 docker-compose up -d --force-recreate
 ```
 
+## 故障排除
+
+### 后端服务启动问题
+如果后端无法启动：
+
+1. **检查后端日志**：
+   ```bash
+   docker-compose logs backend
+   ```
+
+2. **检查健康状态**：
+   ```bash
+   curl http://localhost:4000/api/options
+   ```
+
+3. **重新构建镜像**：
+   ```bash
+   docker-compose build backend
+   docker-compose up -d backend
+   ```
+
+### 前端无法连接后端
+如果前端无法连接后端：
+
+1. **检查网络连接**：
+   ```bash
+   docker-compose exec frontend ping backend
+   ```
+
+2. **检查API URL配置**：
+   确保 `REACT_APP_API_URL` 环境变量设置正确。
+
+3. **检查后端服务状态**：
+   ```bash
+   curl http://localhost:4000/api/options
+   ```
+
 ## 注意事项
 
 1. **端口配置**: 所有服务都配置为监听 `0.0.0.0`，确保可以从外部访问
-2. **防火墙**: 确保服务器防火墙开放了3000、4000、27017端口
+2. **防火墙**: 确保服务器防火墙开放了3000和4000端口
 3. **安全组**: 如果使用云服务器，需要在安全组中配置相应端口
-4. **数据持久化**: MongoDB数据存储在Docker卷中，重启容器数据不会丢失 
+4. **数据存储**: 数据存储在内存中，容器重启后数据会丢失
+5. **启动顺序**: 使用启动脚本确保服务按正确顺序启动（后端 → 前端） 

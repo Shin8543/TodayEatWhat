@@ -9,12 +9,13 @@
 - 可配置的食物选项
 - 使用 Docker 轻松部署
 - 支持服务器部署，可通过IP地址访问
+- 内存存储，快速响应
 
 ## 技术栈
 
 - 前端：React + TypeScript
 - 后端：Java + Spring Boot
-- 数据库：MongoDB
+- 存储：内存存储（ConcurrentHashMap）
 - 容器化：Docker
 
 ## 快速开始
@@ -34,7 +35,7 @@
 1. 在本地构建镜像：
    ```bash
    docker-compose build
-   docker save todayeatwhat_frontend:latest todayeatwhat_backend:latest mongo:latest -o todayeatwhat_images.tar
+   docker save todayeatwhat/frontend:latest todayeatwhat/backend:latest -o todayeatwhat_images.tar
    ```
 
 2. 传输镜像到服务器并加载：
@@ -54,6 +55,7 @@
 ├── frontend/          # React 前端应用
 ├── backend/           # Java Spring Boot 后端服务
 ├── docker-compose.yml # Docker 编排配置
+├── start.sh           # 启动脚本
 ├── BUILD_AND_DEPLOY.md # 构建和部署说明
 └── README.md         # 项目文档
 ```
@@ -63,7 +65,6 @@
 ### 后端开发
 - Java 8
 - Maven 3.6+
-- MongoDB
 
 ### 前端开发
 - Node.js 16+
@@ -75,11 +76,15 @@
 # 本地开发
 docker-compose up --build
 
+# 使用启动脚本
+chmod +x start.sh
+./start.sh
+
 # 构建镜像
 docker-compose build
 
 # 保存镜像
-docker save todayeatwhat_frontend:latest todayeatwhat_backend:latest mongo:latest -o todayeatwhat_images.tar
+docker save todayeatwhat/frontend:latest todayeatwhat/backend:latest -o todayeatwhat_images.tar
 
 # 查看服务状态
 docker-compose ps
@@ -95,4 +100,11 @@ docker-compose down
 
 - **本地开发**: http://localhost:3000
 - **服务器部署**: http://你的服务器IP:3000
-- **后端API**: http://你的服务器IP:4000 
+- **后端API**: http://你的服务器IP:4000
+
+## API接口
+
+- `GET /api/options` - 获取所有食物选项
+- `POST /api/options` - 添加新食物选项
+- `DELETE /api/options/{name}` - 删除指定食物选项
+- `GET /api/random` - 获取随机食物选项 

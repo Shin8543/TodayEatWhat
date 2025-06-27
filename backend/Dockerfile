@@ -14,6 +14,9 @@ RUN apk add --no-cache maven && \
 # Create a smaller runtime image
 FROM openjdk:8-jre-alpine
 
+# Install curl for health check
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 # Copy the built JAR from the build stage

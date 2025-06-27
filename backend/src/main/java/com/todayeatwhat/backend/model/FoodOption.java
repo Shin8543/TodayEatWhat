@@ -1,21 +1,11 @@
 package com.todayeatwhat.backend.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
 import java.time.LocalDateTime;
 
-@Document(collection = "foodOptions")
 public class FoodOption {
     
-    @Id
     private String id;
-    
-    @Field("name")
     private String name;
-    
-    @Field("createdAt")
     private LocalDateTime createdAt;
     
     public FoodOption() {
@@ -25,6 +15,12 @@ public class FoodOption {
     public FoodOption(String name) {
         this.name = name;
         this.createdAt = LocalDateTime.now();
+    }
+    
+    public FoodOption(String id, String name, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.createdAt = createdAt;
     }
     
     // Getters and Setters
