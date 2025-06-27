@@ -1,13 +1,24 @@
-FROM node:18-alpine
+FROM openjdk:8-jdk-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy Maven files
+COPY pom.xml .
+COPY src ./src
 
-RUN npm install
+# Install Maven and build the application
+RUN apk add --no-cache maven && \
+    mvn clean package -DskipTests && \
+    apk del maven
 
-COPY . .
+# Create a smaller runtime image
+FROM openjdk:8-jre-alpine
+
+WORKDIR /app
+
+# Copy the built JAR from the build stage
+COPY --from=0 /app/target/backend-1.0.0.jar app.jar
 
 EXPOSE 4000
 
-CMD ["npm", "start"] 
+CMD ["java", "-jar", "app.jar"] 
