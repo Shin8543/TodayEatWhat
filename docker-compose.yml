@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   frontend:
-    # image: todayeatwhat/frontend:latest
-    build: ./frontend
+    image: todayeatwhat/frontend:latest
     ports:
       - "0.0.0.0:3000:3000"
     depends_on:
@@ -13,8 +12,7 @@ services:
       - REACT_APP_API_URL_FALLBACK=http://localhost:4000
 
   backend:
-    # image: todayeatwhat/backend:latest
-    build: ./backend
+    image: todayeatwhat/backend:latest
     ports:
       - "0.0.0.0:4000:4000"
     depends_on:
